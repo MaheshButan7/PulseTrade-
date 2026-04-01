@@ -27,7 +27,6 @@ export default function Dashboard(){
    const [isModalOpen , setIsModalOpen] = useState(false);
    const [selectedCoin , setSelectedCoin] = useState("")
    const [action , setAction] = useState("")
-   const [quantity , setQuantity] = useState(0)
 
    const [priceFlash , setPriceFlash] = useState<{[key: string]:"up"|"down"|null}>({})
    const prevPrices = useRef<{[key:string]:number}>({})
