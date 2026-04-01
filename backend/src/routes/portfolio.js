@@ -12,20 +12,16 @@ router.get("/" , authMiddleware , async(req,res)=>{
 try{
     const user = await users.findById(userId)
     const portfolio = await Portfolio.findOne({userId})
-
-    // if(!portfolio){
-    //     return res.json({
-    //         balance: user.balance,
-    //         holdings: []
-    //     })
-    // }
-    // res.json({
-    //     balance: user.balance,
-    //     holdings: portfolio.holdings
-    // })
-
     let totalValue = user.balance ;
     let detailedHoldings = [];
+
+    if(!portfolio){
+        return res.json({
+            balance: user.balance,
+            totalValue: user.balance,
+            holdings: []
+        })
+    }
 
     if(portfolio){
         for(let h of portfolio.holdings){
