@@ -67,8 +67,9 @@ export default function TradeModal({isOpen ,coin , action , onClose ,onSuccess ,
     }
 
     return(
-        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
-            <div className="bg-gray-900 rounded-2xl p-8 w-96 flex flex-col gap-4">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 transition-all duration-300">
+            <div className="bg-gray-900/80 backdrop-blur-xl border border-white/10 rounded-3xl p-8 w-96 flex flex-col gap-5 shadow-[0_0_40px_rgba(59,130,246,0.15)] relative overflow-hidden">
+                <div className="absolute -top-20 -right-20 w-40 h-40 bg-blue-500/20 rounded-full blur-3xl pointer-events-none"></div>
                 <div className="flex justify-between items-center">
                     <h2 className="text-xl font-fold">
                         {action === "buy"? "Buy" : "Sell"}{coin}
@@ -85,7 +86,7 @@ export default function TradeModal({isOpen ,coin , action , onClose ,onSuccess ,
                 placeholder="Enter quantity"
                 value={quantity}
                 onChange={(e)=> setQuantity(e.target.value)}
-                className="bg-gray-800 text-white p-3 rounded-lg outline-none"
+                className="bg-black/50 border border-white/10 text-white p-4 rounded-xl outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all placeholder-gray-500 relative z-10"
                 />
 
                 {error && <p className="text-red-400 text-sm">{error}</p>}
@@ -93,11 +94,10 @@ export default function TradeModal({isOpen ,coin , action , onClose ,onSuccess ,
                 <button 
                 onClick={handleTrade}
                 disabled={loading}
-                className={`w-full p-3 rounded-lg font-bold tansition-colors ${
-                    action === "buy"? "bg-green-500 hover:bg-green-600"
-                    : "bg-green-500 hover:bg-red-600"
-                }${loading? "opacity-50 cursor-not-allowed":""}
-                `}
+                className={`w-full p-4 rounded-xl font-bold transition-all duration-300 shadow-lg relative z-10 ${
+                    action === "buy"? "bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 hover:shadow-green-500/25"
+                    : "bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-400 hover:to-rose-500 hover:shadow-red-500/25"
+                } ${loading? "opacity-50 cursor-not-allowed": "hover:-translate-y-0.5"}`}
                 >
                     {loading? "Processing..." : `Confirm ${action==="buy" ? "Buy" : "Sell"}`}
                 </button>
