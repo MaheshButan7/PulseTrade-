@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios"
 import { Link } from "react-router-dom";
+import { toast } from "react-hot-toast";
 
 export default function Login(){
     const [email ,setEmail] = useState("");
@@ -10,13 +11,24 @@ export default function Login(){
     const navigate = useNavigate();
 
     const handleLogin = async ()=>{
-        const res = await api.post("/auth/signin" , {
-            email,
-            password
-        })
-        localStorage.setItem("token" , res.data.token)
+        if (!email || !password) {
+            toast.error("Please fill in all fields");
+            return;
+        }
 
-        navigate("/dashboard");
+        try {
+            const res = await api.post("/auth/signin" , {
+                email,
+                password
+            })
+            localStorage.setItem("token" , res.data.token)
+            toast.success("Logged in successfully!");
+            navigate("/dashboard");
+        } catch (err: any) {
+            console.error("Login error:", err);
+            const message = err.response?.data?.message || "Invalid credentials. Please try again.";
+            toast.error(message);
+        }
     }
 
     return (

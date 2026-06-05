@@ -37,6 +37,25 @@ export default function Dashboard(){
 
    const [isProfitSell , setIsProfitSell] = useState(false)
 
+   const [aiSummary, setAiSummary] = useState("");
+   const [aiLoading, setAiLoading] = useState(false);
+   const [aiError, setAiError] = useState("");
+
+   const fetchAiSummary = async () => {
+       try {
+           setAiLoading(true);
+           setAiError("");
+           const res = await api.get("/portfolio/ai-summary");
+           setAiSummary(res.data.summary);
+       } catch (err: any) {
+           console.error("Failed to generate AI summary:", err);
+           setAiError(err.response?.data?.message || "Failed to generate AI summary");
+           setAiSummary("");
+       } finally {
+           setAiLoading(false);
+       }
+   };
+
    const fetchMarketPrices = async ()=>{
     const res = await api.get("/market/prices")
     setMarketPrices(res.data);
@@ -118,7 +137,59 @@ export default function Dashboard(){
             />
         </div>
 
-        <PortfolioPieChart holdings={holdings} balance={balance} />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <PortfolioPieChart holdings={holdings} balance={balance} />
+            
+            {/* AI Insights Card */}
+            <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-2xl relative overflow-hidden flex flex-col justify-between group">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl pointer-events-none group-hover:bg-purple-500/20 transition-all duration-700"></div>
+                <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none group-hover:bg-blue-500/20 transition-all duration-700"></div>
+                
+                <div className="relative z-10 flex-1 flex flex-col">
+                    <div className="flex items-center gap-3 mb-4">
+                        <span className="text-2xl animate-bounce duration-1000">🤖</span>
+                        <h2 className="text-xl font-bold tracking-tight drop-shadow-sm bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">AI Portfolio Insights</h2>
+                    </div>
+
+                    {aiLoading ? (
+                        <div className="flex flex-col gap-3 py-6 flex-1 justify-center">
+                            <div className="h-4 bg-white/10 rounded-full w-3/4 animate-pulse"></div>
+                            <div className="h-4 bg-white/10 rounded-full w-5/6 animate-pulse text-transparent">.</div>
+                            <div className="h-4 bg-white/10 rounded-full w-2/3 animate-pulse text-transparent">.</div>
+                            <div className="h-4 bg-white/10 rounded-full w-4/5 animate-pulse text-transparent">.</div>
+                            <p className="text-xs text-blue-400 mt-4 animate-pulse font-medium">Gemini AI is analyzing your portfolio data...</p>
+                        </div>
+                    ) : aiSummary ? (
+                        <div className="max-h-[220px] overflow-y-auto custom-scrollbar pr-2 py-1 text-left flex-1">
+                            {renderMarkdown(aiSummary)}
+                        </div>
+                    ) : aiError ? (
+                        <div className="flex flex-col justify-center items-center text-center py-6 gap-3 flex-1">
+                            <span className="text-3xl">⚠️</span>
+                            <p className="text-red-400 text-sm font-semibold max-w-sm">
+                                {aiError}
+                            </p>
+                        </div>
+                    ) : (
+                        <div className="flex flex-col justify-center items-center text-center py-8 gap-4 flex-1">
+                            <p className="text-gray-400 text-sm max-w-sm">
+                                Let Gemini analyze your assets, entry prices, and trading history to give you instant, plain-English portfolio advice and diversification tips.
+                            </p>
+                        </div>
+                    )}
+                </div>
+
+                <div className="mt-4 pt-4 border-t border-white/5 flex justify-end relative z-10">
+                    <button
+                        onClick={fetchAiSummary}
+                        disabled={aiLoading}
+                        className="bg-gradient-to-r from-blue-600 to-purple-700 hover:from-blue-500 hover:to-purple-600 text-white font-semibold py-2.5 px-6 rounded-xl text-sm transition-all duration-300 shadow-[0_0_15px_rgba(59,130,246,0.2)] hover:shadow-[0_0_20px_rgba(59,130,246,0.4)] disabled:opacity-50 disabled:cursor-not-allowed hover:-translate-y-0.5"
+                    >
+                        {aiLoading ? "Analyzing..." : aiSummary ? "Recalculate Summary" : "Generate AI Insights"}
+                    </button>
+                </div>
+            </div>
+        </div>
 
             <div className="mt-8 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden relative">
             <div className="p-6 border-b border-white/10">
@@ -224,4 +295,65 @@ isProfit={isProfitSell}
     )}
 </div>
 )   
+}
+
+function renderMarkdown(text: string) {
+  if (!text) return null;
+  
+  return text.split('\n').map((line, index) => {
+    const trimmed = line.trim();
+    
+    // Header 3
+    if (trimmed.startsWith('### ')) {
+      return <h3 key={index} className="text-lg font-bold text-blue-400 mt-4 mb-2">{trimmed.replace('### ', '')}</h3>;
+    }
+    // Header 4
+    if (trimmed.startsWith('#### ')) {
+      return <h4 key={index} className="text-md font-semibold text-purple-400 mt-3 mb-1">{trimmed.replace('#### ', '')}</h4>;
+    }
+    // Blockquote alerts
+    if (trimmed.startsWith('> [!NOTE]') || trimmed.startsWith('> [!IMPORTANT]')) {
+      return null; // Skip header line of alerts
+    }
+    if (trimmed.startsWith('>')) {
+      return (
+        <blockquote key={index} className="border-l-4 border-yellow-500/50 bg-yellow-500/5 p-3 rounded-r-lg my-2 text-sm text-yellow-200 italic">
+          {trimmed.replace(/^>\s*(\*|\!)?/, '')}
+        </blockquote>
+      );
+    }
+    // Bullet list
+    if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+      const content = trimmed.substring(2);
+      return (
+        <li key={index} className="ml-4 list-disc text-gray-300 mb-1.5 text-sm leading-relaxed">
+          {parseBoldText(content)}
+        </li>
+      );
+    }
+    // Horizontal rule
+    if (trimmed === '---') {
+      return <hr key={index} className="border-white/10 my-4" />;
+    }
+    // Empty line
+    if (!trimmed) {
+      return <div key={index} className="h-2" />;
+    }
+    // Regular paragraph
+    return (
+      <p key={index} className="text-gray-300 text-sm leading-relaxed mb-2">
+        {parseBoldText(trimmed)}
+      </p>
+    );
+  });
+}
+
+function parseBoldText(text: string) {
+  const parts = text.split(/\*\*([^*]+)\*\*/g);
+  return parts.map((part, i) => {
+    if (i % 2 === 1) {
+      return <strong key={i} className="font-extrabold text-white">{part}</strong>;
+    }
+    return part;
+  });
 }

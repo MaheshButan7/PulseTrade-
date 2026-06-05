@@ -1,7 +1,8 @@
 import { useState } from "react";
 import api from "../api/axios"
 import { useNavigate } from "react-router-dom";
-import {Link} from "react-router-dom"
+import { Link } from "react-router-dom";
+import { toast } from "react-hot-toast";
 
 export default function Signup(){
     const [email , setEmail] = useState("");
@@ -11,15 +12,26 @@ export default function Signup(){
     const navigate = useNavigate();
 
     const handleSignup = async ()=>{
-        const res = await api.post("/auth/signup" , {
-            email,
-            password,
-            name
-        })
+        if (!name || !email || !password) {
+            toast.error("Please fill in all fields");
+            return;
+        }
 
-        localStorage.setItem("token" , res.data.token);
+        try {
+            const res = await api.post("/auth/signup" , {
+                email,
+                password,
+                name
+            })
 
-        navigate("/dashboard");
+            localStorage.setItem("token" , res.data.token);
+            toast.success("Account created successfully!");
+            navigate("/dashboard");
+        } catch (err: any) {
+            console.error("Signup error:", err);
+            const message = err.response?.data?.message || "Signup failed. Please try again.";
+            toast.error(message);
+        }
     }
     return (
         <div className="min-h-screen w-full flex items-center justify-center relative overflow-hidden">
