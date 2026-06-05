@@ -9,10 +9,19 @@ const cors =require("cors")
 const marketRoutes = require("./routes/market");
 
 const app = express();
-app.use(express.json());
+
 app.use(cors({
-  origin: "https://pulse-trade-inky.vercel.app"
+  origin: (origin, callback) => {
+    if (!origin || origin.startsWith("http://localhost:") || origin === "https://pulse-trade-inky.vercel.app") {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true
 }))
+
+app.use(express.json());
 
 connectDB();
 
