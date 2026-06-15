@@ -1,4 +1,3 @@
-````
 # PulseTrade 📈
 
 A full-stack stock and crypto paper-trading dashboard that gives traders real-time market data, interactive charts, and a seamless experience for monitoring their portfolios — all in one place.
